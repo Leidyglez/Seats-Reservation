@@ -281,7 +281,6 @@ body {
     transform: scale(1.1);
 }
 
-/* Mejoras de diseño para layout de asientos */
 .seats-layout {
     display: flex;
     justify-content: center;

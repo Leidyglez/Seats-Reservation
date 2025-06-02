@@ -510,8 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showModal('Éxito', 'Todas las reservas han sido eliminadas con éxito.');
     }
-
-    // Exponer funciones globalmente para acceso desde HTML
+    
     window.mostrarModal = mostrarModal;
     window.eliminarTodasReservas = eliminarTodasReservas;
 });

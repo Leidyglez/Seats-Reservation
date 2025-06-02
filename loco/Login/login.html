@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Login - ITSC SALUD</title>
+    <link rel="stylesheet" href="/loco/Login/login.css">
+<body>
+    <div class="dots-pattern" id="dots"></div>
+    
+    <div class="login-container">
+        <div class="logo-container">
+            <div class="logo">
+              <img src="/loco/assets/images/Logo-ITSC.png" alt="ITSC Logo" style="max-height: 80px;">
+            </div>
+            <div class="logo-text">Gestion de Auditorio ITSC</div>
+        </div>
+        
+        <h1>Iniciar Sesión</h1>
+        
+        <form>
+            <div class="input-group">
+                <label for="email">Usuario</label>
+                <div class="input-field">
+                    <input type="email" id="email" placeholder="usuario@itsc.edu.do" 
+                           style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%23616161&quot;><path d=&quot;M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z&quot;/></svg>')">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Contraseña</label>
+                <div class="input-field password-container">
+                    <input type="password" id="password" placeholder="••••••••" 
+                           style='background-image: url("data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"%23616161\"><path d=\"M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2H8.9V6z\"/></svg>")'>
+                </div>
+            </div>
+            
+            <div class="remember-me">
+                <input type="checkbox" id="remember">
+                <label for="remember">Recordarme</label>
+            </div>
+            
+            <button type="submit" onclick="window.location.href='/loco/uno.html'; return false;">Iniciar Sesión</button>
+        </form>
+    </div>
+</body>
+</html>
