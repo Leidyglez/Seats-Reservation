@@ -46,13 +46,13 @@ body {
     transform: scale(1.1);
   }
   
-  .seat.reservado {
+  .seat.Reservado {
     background-color: #ffc107;
     color: #000;
     font-weight: bold;
   }
   
-  .seat.seleccionado {
+  .seat.Seleccionado {
     background-color: #bf2025;
     color: #fff;
     font-weight: bold;

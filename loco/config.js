@@ -4,9 +4,9 @@ const STORE_ASIENTOS = 'auditorioAsientos';
 
 // Estados posibles de un asiento
 const EstadoAsiento = {
-  DISPONIBLE: "disponible",
-  RESERVADO: "reservado",
-  OCUPADO: "ocupado"
+  DISPONIBLE: "Disponible",
+  RESERVADO: "Reservado",
+  OCUPADO: "Ocupado"
 };
 
 // Colores de la aplicación

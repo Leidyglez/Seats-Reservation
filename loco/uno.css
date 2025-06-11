@@ -1,11 +1,9 @@
-
-/* Estilos personalizados para la aplicación de Gestión de Auditorio */
-
 body {
     font-family: 'Roboto', sans-serif;
     min-height: 100vh;
-    display: flex;
     flex-direction: column;
+    display: grid;
+    grid-template-rows: 1fr auto;
   }
   
   /* Colores de la aplicación */
@@ -76,18 +74,22 @@ body {
   .asiento.seleccionado {
     box-shadow: 0 0 0 3px #0d6efd, 0 0 0 6px rgba(13, 110, 253, 0.2);
   }
+
+  .seleccionado {
+    box-shadow: 0 0 0 3px #0d6efd, 0 0 0 6px rgba(13, 110, 253, 0.2);
+  }
   
-  .asiento-disponible {
+  .asiento-Disponible {
     background-color: var(--auditorio-secundario);
     color: #333;
   }
   
-  .asiento-reservado {
+  .asiento-Reservado {
     background-color: var(--auditorio-amarillo);
     color: #212529;
   }
   
-  .asiento-ocupado {
+  .asiento-Ocupado {
     background-color: var(--auditorio-rojo);
     color: white;
   }

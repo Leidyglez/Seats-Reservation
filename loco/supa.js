@@ -2,16 +2,22 @@
 const supabaseUrl = 'https://mahtgbesmlplwzxrqquw.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1haHRnYmVzbWxwbHd6eHJxcXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODkxNzksImV4cCI6MjA2MjA2NTE3OX0.iPQRjkJkvNK84_Arxd5hN0rnZv8b4g4b3X06HERjY94';
 
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 /**
  * Obtiene todos los eventos disponibles desde Supabase
  */
 async function obtenerEventos() {
   try {
-    const { data, error } = await supabase.from('eventos').select('*');
+    const { data, error } = await client.from('eventos').select('*');
     if (error) throw error;
-    return data || [];
+
+    const eventos = (data || []).map(evento => ({
+      ...evento,
+      id: evento.idevento
+    }));
+
+    return eventos || [];
   } catch (error) {
     console.error('Error al obtener eventos:', error);
     mostrarToast('Error', 'No se pudieron cargar los eventos.', 'error');
@@ -19,9 +25,9 @@ async function obtenerEventos() {
   }
 }
 
-async function obtenerEventoPorId(eventoId) {
+async function obtenerEventoPorId(idevento) {
   try {
-    const { data, error } = await supabase.from('eventos').select('*').eq('id', eventoId).single();
+    const { data, error } = await client.from('eventos').select('*').eq('id', idevento).single();
     if (error) throw error;
     return data;
   } catch (error) {
@@ -32,7 +38,7 @@ async function obtenerEventoPorId(eventoId) {
 
 async function crearEvento(evento) {
   try {
-    const { data: existentes, error: errorExistentes } = await supabase
+    const { data: existentes, error: errorExistentes } = await client
       .from('eventos')
       .select('*')
       .eq('nombre', evento.nombre)
@@ -44,7 +50,7 @@ async function crearEvento(evento) {
       return null;
     }
 
-    const { data, error } = await supabase.from('eventos').insert([evento]).select().single();
+    const { data, error } = await client.from('eventos').insert([evento]).select().single();
     if (error) throw error;
 
     await crearAsientosIniciales(data.id);
@@ -57,7 +63,7 @@ async function crearEvento(evento) {
   }
 }
 
-async function crearAsientosIniciales(eventoId) {
+async function crearAsientosIniciales(idevento) {
   try {
     const filas = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O'];
     const asientos = [];
@@ -69,17 +75,16 @@ async function crearAsientosIniciales(eventoId) {
             seccion,
             fila,
             columna,
-            estado: 'disponible',
-            evento_id: eventoId,
+            estado: 'Disponible',
+            idevento: idevento,
             asistente: '',
-            hora: '',
             comentario: ''
           });
         }
       }
     }
 
-    const { error } = await supabase.from('asientos').insert(asientos);
+    const { error } = await client.from('asientos').insert(asientos);
     if (error) throw error;
   } catch (error) {
     console.error('Error al crear asientos iniciales:', error);
@@ -89,7 +94,7 @@ async function crearAsientosIniciales(eventoId) {
 
 async function obtenerAsientosGenerales() {
   try {
-    const { data, error } = await supabase.from('asientos').select('*');
+    const { data, error } = await client.from('asientos').select('*');
     if (error) throw error;
     return data || [];
   } catch (error) {
@@ -98,10 +103,11 @@ async function obtenerAsientosGenerales() {
   }
 }
 
-async function obtenerAsientos(eventoId) {
+async function obtenerAsientos(idevento) {
   try {
-    const { data, error } = await supabase.from('asientos').select('*').eq('evento_id', eventoId);
+    const { data, error } = await client.from('asientos').select('*').eq('idevento', idevento);
     if (error) throw error;
+    
     return data || [];
   } catch (error) {
     console.error('Error al obtener asientos:', error);
@@ -110,15 +116,15 @@ async function obtenerAsientos(eventoId) {
   }
 }
 
-async function buscarAsientosPorAsistente(eventoId, nombreAsistente) {
+async function buscarAsientosPorAsistente(idevento, nombreAsistente) {
   try {
-    let query = supabase.from('asientos').select('*');
-    if (eventoId) query = query.eq('evento_id', eventoId);
+    let query = client.from('asientos').select('*');
+    if (idevento) query = query.eq('idevento', idevento);
 
     const { data, error } = await query.ilike('asistente', `%${nombreAsistente}%`);
     if (error) throw error;
 
-    return data.filter(a => a.estado !== 'disponible');
+    return data.filter(a => a.estado !== 'Disponible');
   } catch (error) {
     console.error('Error al buscar asientos:', error);
     mostrarToast('Error', 'No se pudo realizar la búsqueda.', 'error');
@@ -128,15 +134,14 @@ async function buscarAsientosPorAsistente(eventoId, nombreAsistente) {
 
 async function actualizarAsiento(asiento) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('asientos')
       .update({
         estado: asiento.estado,
         asistente: asiento.asistente || '',
-        hora: asiento.hora || obtenerHoraActual(),
         comentario: asiento.comentario || ''
       })
-      .eq('id', asiento.id)
+      .eq('idasientos', asiento.idasientos)
       .select()
       .single();
 
@@ -151,10 +156,10 @@ async function actualizarAsiento(asiento) {
 
 async function eliminarReserva(asientoId) {
   try {
-    const { error } = await supabase
+    const { error } = await client
       .from('asientos')
-      .update({ estado: 'disponible', asistente: '', hora: '', comentario: '' })
-      .eq('id', asientoId);
+      .update({ estado: 'Disponible', asistente: '', comentario: '' })
+      .eq('idasientos', asientoId);
 
     if (error) throw error;
     return true;
@@ -174,7 +179,7 @@ async function guardarReservacion(asientos, estado) {
     }
 
     if (exito) {
-      mostrarToast('Reservación guardada', `Se han ${estado === 'reservado' ? 'reservado' : 'ocupado'} ${asientos.length} asientos correctamente.`);
+      mostrarToast('Reservación guardada', `Se han ${estado === 'Reservado' ? 'reservado' : 'ocupado'} ${asientos.length} asientos correctamente.`);
       return true;
     } else {
       throw new Error('No se pudieron actualizar todos los asientos');
@@ -185,3 +190,26 @@ async function guardarReservacion(asientos, estado) {
     return false;
   }
 }
+
+
+  /**
+   * Calcula estadísticas para un conjunto de asientos
+   * @param {Array} asientos Lista de asientos
+   * @returns {Object} Estadísticas calculadas
+   */
+  function calcularEstadisticas(asientos) {
+    const totalAsientos = asientos.length;
+    const disponibles = asientos.filter(a => a.estado === EstadoAsiento.DISPONIBLE).length;
+    const reservados = asientos.filter(a => a.estado === EstadoAsiento.RESERVADO).length;
+    const ocupados = asientos.filter(a => a.estado === EstadoAsiento.OCUPADO).length;
+    
+    return {
+      totalAsientos,
+      disponibles,
+      reservados,
+      ocupados,
+      porcentajeDisponibles: totalAsientos > 0 ? (disponibles / totalAsientos) * 100 : 0,
+      porcentajeReservados: totalAsientos > 0 ? (reservados / totalAsientos) * 100 : 0,
+      porcentajeOcupados: totalAsientos > 0 ? (ocupados / totalAsientos) * 100 : 0
+    };
+  }

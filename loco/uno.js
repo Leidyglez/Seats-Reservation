@@ -109,7 +109,7 @@ function renderizarEventos(eventos) {
   
   eventos.forEach(evento => {
     const boton = document.createElement('button');
-    boton.className = `btn text-start p-3 mb-2 ${eventoActual && eventoActual.id === evento.id ? 'btn-auditorio-rojo text-white' : 'btn-light'}`;
+    boton.className = `btn text-start p-3 mb-2 ${eventoActual && eventoActual.idevento === evento.idevento ? 'btn-auditorio-rojo text-white' : 'btn-light'}`;
     
     // Formatear fecha para mostrar
     const fechaFormateada = formatearFecha(evento.fecha);
@@ -117,7 +117,7 @@ function renderizarEventos(eventos) {
     
     boton.innerHTML = `
       <div class="fw-medium">${evento.nombre}</div>
-      <small class="text-${eventoActual && eventoActual.id === evento.id ? 'white opacity-75' : 'muted'}">
+      <small class="text-${eventoActual && eventoActual.idevento === evento.idevento ? 'white opacity-75' : 'muted'}">
         ${fechaFormateada}${horaFormateada ? ` · ${horaFormateada}` : ''}
       </small>
     `;
@@ -173,7 +173,7 @@ async function seleccionarEvento(evento) {
 // Cargar asientos de un evento
 async function cargarAsientos(eventoId) {
   seccionesAuditorio.classList.add('d-none');
-  asientosCargando.classList.remove('d-none');
+  asientosCargando.classList.remove('d-none');140
   
   // Limpiar selección de asientos
   asientosSeleccionados = [];
@@ -208,6 +208,7 @@ function renderizarAsientos() {
   const filasSeccion1 = [...new Set(asientosSeccion1.map(a => a.fila))].sort();
   const filasSeccion2 = [...new Set(asientosSeccion2.map(a => a.fila))].sort();
   
+
   // Renderizar asientos de la sección 1
   renderizarAsientosPorSeccion(seccion1, asientosSeccion1, filasSeccion1);
   
@@ -234,7 +235,8 @@ function renderizarAsientosPorSeccion(contenedor, asientosSeccion, filas) {
       .forEach(asiento => {
         const asientoDiv = document.createElement('div');
         asientoDiv.className = `asiento asiento-${asiento.estado}`;
-        asientoDiv.dataset.id = asiento.id;
+        asientoDiv.dataset.id = asiento.id || asiento.idasientos;
+        asientoDiv.dataset.idasientos = asiento.idasientos;
         asientoDiv.dataset.seccion = asiento.seccion;
         asientoDiv.dataset.fila = asiento.fila;
         asientoDiv.dataset.columna = asiento.columna;
@@ -259,7 +261,7 @@ function renderizarAsientosPorSeccion(contenedor, asientosSeccion, filas) {
 
 // Alternar selección de un asiento
 function toggleSeleccionAsiento(asiento) {
-  const asientoIndex = asientosSeleccionados.findIndex(a => a.id === asiento.id);
+  const asientoIndex = asientosSeleccionados.findIndex(a => a.idasientos === asiento.idasientos);
   
   if (asientoIndex === -1) {
     // Agregar a la selección
@@ -288,7 +290,7 @@ function actualizarUIAsientosSeleccionados() {
   // Actualizar clases de los asientos en el DOM
   document.querySelectorAll('.asiento').forEach(el => {
     const asientoId = parseInt(el.dataset.id);
-    if (asientosSeleccionados.some(a => a.id === asientoId)) {
+    if (asientosSeleccionados.some(a => a.idasientos === asientoId)) {
       el.classList.add('seleccionado');
     } else {
       el.classList.remove('seleccionado');
@@ -466,7 +468,6 @@ async function cambiarEstadoAsientos(nuevoEstado) {
         asistente: nombreAsistente,
         comentario: comentarioAsistente
       });
-      
       if (asientoActualizado) {
         // Actualizar en el array local
         const index = asientos.findIndex(a => a.id === asiento.id);
@@ -475,7 +476,6 @@ async function cambiarEstadoAsientos(nuevoEstado) {
             ...asientos[index],
             estado: nuevoEstado,
             asistente: nombreAsistente,
-            hora: asientoActualizado.hora,
             comentario: comentarioAsistente
           };
           asientosActualizados++;
@@ -564,6 +564,9 @@ async function crearNuevoEvento(e) {
     // Recargar eventos
     await cargarEventos();
     
+    eventoCreado.id = eventoCreado.idevento; 
+
+    crearAsientosIniciales(eventoCreado.id);
     // Seleccionar el evento creado
     seleccionarEvento(eventoCreado);
   }
@@ -679,7 +682,7 @@ async function buscarReservaciones(e) {
   
   try {
     // Obtener ID del evento actual si corresponde
-    const eventoId = buscarSoloEvento && eventoActual ? eventoActual.id : null;
+    const eventoId = buscarSoloEvento && eventoActual ? eventoActual.idevento : null;
     
     // Realizar búsqueda
     resultadosBusquedaActual = await buscarAsientosPorAsistente(eventoId, nombreBusqueda);
@@ -745,6 +748,7 @@ async function mostrarResultadosBusqueda(resultados, termino) {
     `;
     grupoEvento.appendChild(eventoHeader);
     
+    
     // Lista de asientos para este evento
     for (const asiento of asientos) {
       const resultadoItem = document.createElement('div');
@@ -788,13 +792,13 @@ async function mostrarResultadosBusqueda(resultados, termino) {
 // Ver asiento de búsqueda
 async function verAsientoBuscado(evento, asiento) {
   // Si el evento es diferente al actual, cargarlo primero
-  if (!eventoActual || eventoActual.id !== evento.id) {
+  if (!eventoActual || eventoActual.idevento !== evento.idevento) {
     await seleccionarEvento(evento);
   }
   
   // Una vez cargado el evento, resaltar el asiento
   setTimeout(() => {
-    const asientoElement = document.querySelector(`.asiento[data-id="${asiento.id}"]`);
+    const asientoElement = document.querySelector(`.asiento[data-id="${asiento.idevento}"]`);
     if (asientoElement) {
       // Hacer scroll hacia el asiento
       asientoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
