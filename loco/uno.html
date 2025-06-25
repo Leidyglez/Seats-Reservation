@@ -164,6 +164,7 @@
             <div class="d-flex justify-content-between align-items-start">
               <div>
                 <h2 id="nombreEventoSeleccionado" class="h3 text-auditorio-rojo"></h2>
+                <h2 id="estadoEventoSeleccionado" class="h3"></h2>
                 <p id="fechaEventoSeleccionado" class="text-muted mb-1"></p>
                 <p id="horaEventoSeleccionado" class="text-muted"></p>
                 <p id="descripcionEventoSeleccionado" class="mt-2"></p>
@@ -299,38 +300,47 @@
   <div class="modal fade" id="editarEventoModal" tabindex="-1" aria-labelledby="editarEventoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editarEventoModalLabel">Editar Evento</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="modal-header">
+        <h5 class="modal-title" id="editarEventoModalLabel">Editar Evento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editarEventoForm">
+        <input type="hidden" id="editarEventoId">
+        <div class="mb-3">
+          <label for="editarNombreEvento" class="form-label">Nombre del evento</label>
+          <input type="text" class="form-control" id="editarNombreEvento" required>
         </div>
-        <div class="modal-body">
-          <form id="editarEventoForm">
-            <input type="hidden" id="editarEventoId">
-            <div class="mb-3">
-              <label for="editarNombreEvento" class="form-label">Nombre del evento</label>
-              <input type="text" class="form-control" id="editarNombreEvento" required>
-            </div>
-            <div class="mb-3">
-              <label for="editarFechaEvento" class="form-label">Fecha</label>
-              <input type="date" class="form-control" id="editarFechaEvento" required>
-            </div>
-            <div class="mb-3">
-              <label for="editarHoraEvento" class="form-label">Hora</label>
-              <input type="time" class="form-control" id="editarHoraEvento" required>
-            </div>
-            <div class="mb-3">
-              <label for="editarDescripcionEvento" class="form-label">Descripción</label>
-              <textarea class="form-control" id="editarDescripcionEvento" rows="3"></textarea>
-            </div>
-          </form>
+        <div class="mb-3">
+          <label for="editarFechaEvento" class="form-label">Fecha</label>
+          <input type="date" class="form-control" id="editarFechaEvento" required>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" id="guardarEventoEditadoBtn" class="btn btn-auditorio-rojo">Guardar cambios</button>
+        <div class="mb-3">
+          <label for="editarHoraEvento" class="form-label">Hora</label>
+          <input type="time" class="form-control" id="editarHoraEvento" required>
         </div>
+        <div class="mb-3">
+          <label for="editarEstadoEvento" class="form-label">Estado</label>
+          <select class="form-select" id="editarEstadoEvento" required>
+          <option value="">Seleccionar estado</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="editarDescripcionEvento" class="form-label">Descripción</label>
+          <textarea class="form-control" id="editarDescripcionEvento" rows="3"></textarea>
+        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="guardarEventoEditadoBtn" class="btn btn-auditorio-rojo">Guardar cambios</button>
+        <button type="button" id="eliminarEventoBtn" class="btn btn-danger">Eliminar Evento</button>
+      </div>
       </div>
     </div>
-  </div>
+    </div>
   
   <!-- Toast para notificaciones -->
   <div class="toast-container position-fixed bottom-0 end-0 p-3">

@@ -20,6 +20,7 @@ const toggleFormBtn = document.getElementById('toggleFormBtn');
 const eventoSeleccionado = document.getElementById('eventoSeleccionado');
 const bienvenida = document.getElementById('bienvenida');
 const nombreEventoSeleccionado = document.getElementById('nombreEventoSeleccionado');
+const estadoEventoSeleccionado = document.getElementById('estadoEventoSeleccionado');
 const fechaEventoSeleccionado = document.getElementById('fechaEventoSeleccionado');
 const horaEventoSeleccionado = document.getElementById('horaEventoSeleccionado');
 const descripcionEventoSeleccionado = document.getElementById('descripcionEventoSeleccionado');
@@ -131,12 +132,13 @@ function renderizarEventos(eventos) {
 async function seleccionarEvento(evento) {
   eventoActual = evento;
 
-  
+  debugger;
   // Actualizar UI para mostrar el evento seleccionado
   bienvenida.classList.add('d-none');
   eventoSeleccionado.classList.remove('d-none');
   
   nombreEventoSeleccionado.textContent = evento.nombre;
+  estadoEventoSeleccionado.textContent = evento.estado;
   
   // Formatear fecha para mostrar
   const fechaFormateada = formatearFecha(evento.fecha);
@@ -167,36 +169,48 @@ async function seleccionarEvento(evento) {
   renderizarEventos(eventos);
   
   // Cargar asientos del evento
-  cargarAsientos(evento.id);
+const eventoid = evento.idevento || evento.id; // Asegurar que usamos el ID correcto
+
+  cargarAsientos(eventoid);
 }
 
 // Cargar asientos de un evento
 async function cargarAsientos(eventoId) {
   seccionesAuditorio.classList.add('d-none');
-  asientosCargando.classList.remove('d-none');140
+  asientosCargando.classList.remove('d-none');
   
-  // Limpiar selección de asientos
+  // Limpiar selección de asientos ANTES de cargar nuevos datos
   asientosSeleccionados = [];
   actualizarUIAsientosSeleccionados();
   
-  // Obtener asientos de localStorage
-  asientos = await obtenerAsientos(eventoId);
-  
-  // Mostrar estadísticas
-  const estadisticas = calcularEstadisticas(asientos);
-  actualizarEstadisticas(estadisticas);
-  estadisticasContainer.classList.remove('d-none');
-  
-  // Renderizar asientos
-  renderizarAsientos();
-  
-  asientosCargando.classList.add('d-none');
-  seccionesAuditorio.classList.remove('d-none');
+  try {
+    // Obtener asientos frescos de localStorage
+    asientos = await obtenerAsientos(eventoId);
+    
+    // Verificar que los asientos están actualizados
+    console.log('Asientos cargados:', asientos.length);
+    
+    // Mostrar estadísticas
+    const estadisticas = calcularEstadisticas(asientos);
+    actualizarEstadisticas(estadisticas);
+    estadisticasContainer.classList.remove('d-none');
+    
+    // Renderizar asientos
+    renderizarAsientos();
+    
+  } catch (error) {
+    console.error('Error al cargar asientos:', error);
+    mostrarToast('Error', 'No se pudieron cargar los asientos.', 'error');
+  } finally {
+    asientosCargando.classList.add('d-none');
+    seccionesAuditorio.classList.remove('d-none');
+  }
 }
+
 
 // Renderizar asientos en las secciones
 function renderizarAsientos() {
-  // Limpiar secciones
+  // Limpiar secciones completamente
   seccion1.innerHTML = '';
   seccion2.innerHTML = '';
   
@@ -208,15 +222,11 @@ function renderizarAsientos() {
   const filasSeccion1 = [...new Set(asientosSeccion1.map(a => a.fila))].sort();
   const filasSeccion2 = [...new Set(asientosSeccion2.map(a => a.fila))].sort();
   
-
-  // Renderizar asientos de la sección 1
+  // Renderizar asientos de cada sección
   renderizarAsientosPorSeccion(seccion1, asientosSeccion1, filasSeccion1);
-  
-  // Renderizar asientos de la sección 2
   renderizarAsientosPorSeccion(seccion2, asientosSeccion2, filasSeccion2);
-}
+} 
 
-// Renderizar asientos de una sección específica
 function renderizarAsientosPorSeccion(contenedor, asientosSeccion, filas) {
   filas.forEach(fila => {
     const filaDiv = document.createElement('div');
@@ -234,8 +244,16 @@ function renderizarAsientosPorSeccion(contenedor, asientosSeccion, filas) {
       .sort((a, b) => a.columna - b.columna)
       .forEach(asiento => {
         const asientoDiv = document.createElement('div');
-        asientoDiv.className = `asiento asiento-${asiento.estado}`;
-        asientoDiv.dataset.id = asiento.id || asiento.idasientos;
+        
+        // Determinar la clase CSS según el estado actual del asiento
+        let claseEstado = `asiento-${asiento.estado}`;
+        
+        // Aplicar todas las clases necesarias
+        asientoDiv.className = `asiento ${claseEstado}`;
+        
+        // Configurar atributos de datos (usar identificadores consistentes)
+        const asientoId = asiento.id || asiento.idasientos;
+        asientoDiv.dataset.id = asientoId;
         asientoDiv.dataset.idasientos = asiento.idasientos;
         asientoDiv.dataset.seccion = asiento.seccion;
         asientoDiv.dataset.fila = asiento.fila;
@@ -244,14 +262,25 @@ function renderizarAsientosPorSeccion(contenedor, asientosSeccion, filas) {
         asientoDiv.dataset.asistente = asiento.asistente || '';
         asientoDiv.dataset.hora = asiento.hora || '';
         asientoDiv.dataset.comentario = asiento.comentario || '';
+       
+        asientoDiv.dataset.identificador = asiento.identificador || obtenerIdentificadorAsiento(asiento);
+        
+        // Contenido del asiento
         asientoDiv.textContent = `${asiento.fila}${asiento.columna}`;
         
-        // Verificar si está seleccionado
-        if (asientosSeleccionados.some(a => a.id === asiento.id)) {
+        // Verificar si está seleccionado (usar el ID correcto)
+        const estaSeleccionado = asientosSeleccionados.some(a => 
+          (a.id && a.id === asientoId) || 
+          (a.idasientos && a.idasientos === asiento.idasientos)
+        );
+        
+        if (estaSeleccionado) {
           asientoDiv.classList.add('seleccionado');
         }
         
+        // Event listener para selección
         asientoDiv.addEventListener('click', () => toggleSeleccionAsiento(asiento));
+        
         filaDiv.appendChild(asientoDiv);
       });
     
@@ -261,11 +290,22 @@ function renderizarAsientosPorSeccion(contenedor, asientosSeccion, filas) {
 
 // Alternar selección de un asiento
 function toggleSeleccionAsiento(asiento) {
-  const asientoIndex = asientosSeleccionados.findIndex(a => a.idasientos === asiento.idasientos);
+  // Usar identificador consistente
+  const asientoId = asiento.id || asiento.idasientos;
+  
+  debugger;
+
+  // Buscar el asiento en la selección actual
+  const asientoIndex = asientosSeleccionados.findIndex(a => 
+   a.identificador === asiento.identificador
+  );
   
   if (asientoIndex === -1) {
     // Agregar a la selección
-    asientosSeleccionados.push(asiento);
+    asientosSeleccionados.push({
+      ...asiento,
+      id: asientoId // Asegurar que tenga un ID consistente
+    });
   } else {
     // Quitar de la selección
     asientosSeleccionados.splice(asientoIndex, 1);
@@ -277,26 +317,36 @@ function toggleSeleccionAsiento(asiento) {
 
 // Actualizar UI según los asientos seleccionados
 function actualizarUIAsientosSeleccionados() {
-  // Actualizar contador de seleccionados
+  // Actualizar contador y botones
   if (asientosSeleccionados.length > 0) {
     asientosSeleccionadosAlert.classList.remove('d-none');
     cantidadSeleccionados.textContent = `${asientosSeleccionados.length} asiento(s) seleccionado(s)`;
     guardarReservacionBtn.disabled = false;
+    editarSeleccionadosBtn.disabled = false;
   } else {
     asientosSeleccionadosAlert.classList.add('d-none');
     guardarReservacionBtn.disabled = true;
+    editarSeleccionadosBtn.disabled = true;
   }
   
-  // Actualizar clases de los asientos en el DOM
+  // Actualizar clases visuales de todos los asientos en el DOM
   document.querySelectorAll('.asiento').forEach(el => {
-    const asientoId = parseInt(el.dataset.id);
-    if (asientosSeleccionados.some(a => a.idasientos === asientoId)) {
+    const asientoId = el.dataset.id;
+    const idasientos = el.dataset.idasientos;
+    
+    // Verificar si está seleccionado
+    const estaSeleccionado = asientosSeleccionados.some(a => 
+      a.identificador === el.dataset.identificador 
+    );
+    
+    if (estaSeleccionado) {
       el.classList.add('seleccionado');
     } else {
       el.classList.remove('seleccionado');
     }
   });
 }
+
 
 // Actualizar estadísticas del evento
 function actualizarEstadisticas(stats) {
@@ -434,75 +484,84 @@ function mostrarModalAsientos() {
 
 // Cambiar estado de asientos seleccionados
 async function cambiarEstadoAsientos(nuevoEstado) {
-  // Si no hay asientos seleccionados, salir
   if (asientosSeleccionados.length === 0) return;
   
-  // Obtener el nombre del asistente y comentario si están disponibles
+  // Obtener datos del modal
   const nombreAsistenteInput = document.getElementById('nombreAsistente');
   const comentarioAsistenteInput = document.getElementById('comentarioAsistente');
   const nombreAsistente = nombreAsistenteInput ? nombreAsistenteInput.value.trim() : '';
   const comentarioAsistente = comentarioAsistenteInput ? comentarioAsistenteInput.value.trim() : '';
   
-
-  if (!nombreAsistente) {
+  // Validar nombre del asistente para reservas y ocupados
+  if ((nuevoEstado === EstadoAsiento.RESERVADO || nuevoEstado === EstadoAsiento.OCUPADO) && !nombreAsistente) {
     mostrarToast('Campo requerido', 'El nombre del asistente es obligatorio.', 'error');
     return;
   }
-
+  
   // Cerrar modal
   asientoModal.hide();
   
   try {
-    // Variable para contar asientos actualizados
     let asientosActualizados = 0;
+    const asientosParaActualizar = [...asientosSeleccionados]; // Copia para evitar modificaciones durante el loop
     
-    // Iterar sobre cada asiento seleccionado
-    for (const asiento of asientosSeleccionados) {
-      // No hacer nada si el estado es el mismo y no hay cambio de asistente ni comentario
-      if (asiento.estado === nuevoEstado && asiento.asistente === nombreAsistente && asiento.comentario === comentarioAsistente) continue;
-      
-      // Actualizar en localStorage
-      const asientoActualizado = await actualizarAsiento({
+    // Actualizar cada asiento
+    for (const asiento of asientosParaActualizar) {
+      const datosActualizados = {
         ...asiento,
         estado: nuevoEstado,
-        asistente: nombreAsistente,
-        comentario: comentarioAsistente
-      });
-      if (asientoActualizado) {
+        asistente: nuevoEstado === EstadoAsiento.DISPONIBLE ? '' : nombreAsistente,
+        comentario: nuevoEstado === EstadoAsiento.DISPONIBLE ? '' : comentarioAsistente,
+        hora: nuevoEstado === EstadoAsiento.DISPONIBLE ? '' : new Date().toLocaleTimeString()
+      };
+      
+      // Actualizar en localStorage
+      const resultado = await actualizarAsiento(datosActualizados);
+      
+      if (resultado) {
         // Actualizar en el array local
-        const index = asientos.findIndex(a => a.id === asiento.id);
+        const index = asientos.findIndex(a => 
+          a.identificador === obtenerIdentificadorAsiento(asiento) 
+          
+        );
+        
         if (index !== -1) {
-          asientos[index] = {
-            ...asientos[index],
-            estado: nuevoEstado,
-            asistente: nombreAsistente,
-            comentario: comentarioAsistente
-          };
+          asientos[index] = { ...asientos[index], ...datosActualizados };
           asientosActualizados++;
         }
       }
     }
     
     if (asientosActualizados > 0) {
-      // Actualizar UI
+      // Limpiar selección ANTES de actualizar UI
+      asientosSeleccionados = [];
+      
+      // Actualizar UI completamente
       renderizarAsientos();
       
       // Actualizar estadísticas
       const nuevasEstadisticas = calcularEstadisticas(asientos);
       actualizarEstadisticas(nuevasEstadisticas);
       
-      // Limpiar selección
-      asientosSeleccionados = [];
+      // Actualizar UI de selección
       actualizarUIAsientosSeleccionados();
       
-      // Mostrar mensaje de éxito
-      mostrarToast('Éxito', `Se han actualizado ${asientosActualizados} asientos.`);
+      // Mensaje de éxito
+      const mensaje = nuevoEstado === EstadoAsiento.DISPONIBLE ? 
+        `Se han liberado ${asientosActualizados} asientos.` :
+        `Se han ${nuevoEstado === EstadoAsiento.RESERVADO ? 'reservado' : 'marcado como ocupados'} ${asientosActualizados} asientos.`;
+      
+      mostrarToast('Éxito', mensaje);
+    } else {
+      mostrarToast('Advertencia', 'No se pudo actualizar ningún asiento.', 'warning');
     }
+    
   } catch (error) {
     console.error("Error al cambiar estado de asientos:", error);
-    mostrarToast('Error', 'No se pudieron actualizar todos los asientos.', 'error');
+    mostrarToast('Error', 'Ocurrió un error al actualizar los asientos.', 'error');
   }
 }
+
 
 // Guardar reservación
 async function guardarReservacion() {
@@ -511,12 +570,19 @@ async function guardarReservacion() {
     return;
   }
   
-  // Preguntar si está seguro
+  // Verificar que todos los asientos seleccionados estén disponibles
+  const asientosNoDisponibles = asientosSeleccionados.filter(a => a.estado !== EstadoAsiento.DISPONIBLE);
+  
+  if (asientosNoDisponibles.length > 0) {
+    mostrarToast('Error', 'Algunos asientos seleccionados ya no están disponibles. Por favor, actualice la selección.', 'error');
+    // Recargar asientos para mostrar el estado actual
+    await recargarAsientos();
+    return;
+  }
+  
+  // Confirmar la reservación
   if (confirm(`¿Está seguro de que desea reservar ${asientosSeleccionados.length} asientos?`)) {
-    // Mostrar modal para ingresar nombre de asistente
     mostrarModalAsientos();
-    
-    // El guardado real se realiza al hacer clic en los botones del modal
   }
 }
 
@@ -566,7 +632,7 @@ async function crearNuevoEvento(e) {
     
     eventoCreado.id = eventoCreado.idevento; 
 
-    crearAsientosIniciales(eventoCreado.id);
+    // crearAsientosIniciales(eventoCreado.id);
     // Seleccionar el evento creado
     seleccionarEvento(eventoCreado);
   }
@@ -582,13 +648,15 @@ function prepararEdicionEvento() {
   const editarFechaEvento = document.getElementById('editarFechaEvento');
   const editarHoraEvento = document.getElementById('editarHoraEvento');
   const editarDescripcionEvento = document.getElementById('editarDescripcionEvento');
-  
+  const estadoEvento = document.getElementById('editarEstadoEvento');
+
   editarEventoId.value = eventoActual.id;
   editarNombreEvento.value = eventoActual.nombre;
   editarFechaEvento.value = eventoActual.fecha;
   editarHoraEvento.value = eventoActual.hora || '';
   editarDescripcionEvento.value = eventoActual.descripcion || '';
-  
+  estadoEvento.value = eventoActual.estado || '';
+  debugger;
   // Mostrar modal
   editarEventoModal.show();
 }
@@ -600,12 +668,14 @@ async function guardarEventoEditado() {
   const editarFechaEvento = document.getElementById('editarFechaEvento');
   const editarHoraEvento = document.getElementById('editarHoraEvento');
   const editarDescripcionEvento = document.getElementById('editarDescripcionEvento');
+  const estadoEvento = document.getElementById('editarEstadoEvento');
   
   const id = parseInt(editarEventoId.value);
   const nombre = editarNombreEvento.value.trim();
   const fecha = editarFechaEvento.value;
   const hora = editarHoraEvento.value;
   const descripcion = editarDescripcionEvento.value.trim();
+  const estado = estadoEvento.value;
   
   if (!nombre) {
     mostrarToast('Campo requerido', 'El nombre del evento es obligatorio.', 'error');
@@ -623,7 +693,7 @@ async function guardarEventoEditado() {
     
     // Encontrar el evento a editar
     const indice = eventos.findIndex(e => e.id === id);
-    
+    debugger;
     if (indice !== -1) {
       // Actualizar los datos del evento
       eventos[indice] = {
@@ -631,12 +701,13 @@ async function guardarEventoEditado() {
         nombre,
         fecha,
         hora,
-        descripcion
+        descripcion,
+        estado
       };
       
       // Guardar en localStorage
-      localStorage.setItem(STORE_EVENTOS, JSON.stringify(eventos));
-      
+      await editarEvento(eventos[indice].idevento, eventos[indice]);
+
       // Actualizar eventoActual
       eventoActual = eventos[indice];
       
@@ -652,7 +723,7 @@ async function guardarEventoEditado() {
       }
       
       descripcionEventoSeleccionado.textContent = descripcion;
-      
+      estadoEventoSeleccionado.textContent = estado;
       // Cerrar modal
       editarEventoModal.hide();
       
@@ -716,14 +787,14 @@ async function mostrarResultadosBusqueda(resultados, termino) {
   
   // Cargar información de eventos para cada asiento
   for (const asiento of resultados) {
-    if (!eventosPorId[asiento.eventoId]) {
-      const evento = await obtenerEventoPorId(asiento.eventoId);
-      eventosPorId[asiento.eventoId] = {
+    if (!eventosPorId[asiento.idevento]) {
+      const evento = await obtenerEventoPorId(asiento.idevento);
+      eventosPorId[asiento.idevento] = {
         evento,
         asientos: []
       };
     }
-    eventosPorId[asiento.eventoId].asientos.push(asiento);
+    eventosPorId[asiento.idevento].asientos.push(asiento);
   }
   
   // Construir HTML de resultados agrupados por evento
@@ -798,7 +869,8 @@ async function verAsientoBuscado(evento, asiento) {
   
   // Una vez cargado el evento, resaltar el asiento
   setTimeout(() => {
-    const asientoElement = document.querySelector(`.asiento[data-id="${asiento.idevento}"]`);
+    const asientoElement = document.querySelector(`.asiento[data-id="${asiento.idasientos}"]`);
+
     if (asientoElement) {
       // Hacer scroll hacia el asiento
       asientoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });

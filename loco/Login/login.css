@@ -137,19 +137,6 @@ input:focus {
   color: var(--gray);
 }
 
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1.5rem 0;
-}
-
-.remember-me input {
-  width: 1.125rem;
-  height: 1.125rem;
-  accent-color: var(--primary);
-}
-
 button {
   width: 100%;
   padding: 0.875rem;
