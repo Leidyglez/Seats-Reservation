@@ -104,29 +104,35 @@ function renderizarEventos(eventos) {
       listaEventos.removeChild(child);
     }
   });
-  
-  // Ordenar eventos por fecha (los más recientes primero)
+
+  // Ordenar eventos por fecha (más recientes primero)
   eventos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  
+
   eventos.forEach(evento => {
+    const esActivo = evento.estado === 'Activo';
+
     const boton = document.createElement('button');
-    boton.className = `btn text-start p-3 mb-2 ${eventoActual && eventoActual.idevento === evento.idevento ? 'btn-auditorio-rojo text-white' : 'btn-light'}`;
-    
-    // Formatear fecha para mostrar
+    boton.className = `btn text-start p-3 mb-2 evento-item ${eventoActual && eventoActual.idevento === evento.idevento ? 'btn-auditorio-rojo text-white' : 'btn-light'} ${esActivo ? '' : 'd-none inactivo'}`;
+
     const fechaFormateada = formatearFecha(evento.fecha);
     const horaFormateada = formatearHora(evento.hora);
-    
+
     boton.innerHTML = `
       <div class="fw-medium">${evento.nombre}</div>
       <small class="text-${eventoActual && eventoActual.idevento === evento.idevento ? 'white opacity-75' : 'muted'}">
         ${fechaFormateada}${horaFormateada ? ` · ${horaFormateada}` : ''}
       </small>
     `;
-    
+
     boton.addEventListener('click', () => seleccionarEvento(evento));
     listaEventos.appendChild(boton);
   });
+
+  // Ocultar mensaje de vacío si hay eventos activos
+  const hayActivos = eventos.some(e => e.estado === 'Activo');
+  eventosVacio.classList.toggle('d-none', hayActivos);
 }
+
 
 // Seleccionar un evento
 async function seleccionarEvento(evento) {
@@ -950,6 +956,26 @@ function configurarEventListeners() {
   document.getElementById('btnReservado').addEventListener('click', () => cambiarEstadoAsientos(EstadoAsiento.RESERVADO));
   document.getElementById('btnOcupado').addEventListener('click', () => cambiarEstadoAsientos(EstadoAsiento.OCUPADO));
 }
+
+document.getElementById('eventoBusqueda').addEventListener('input', function () {
+  const filtro = this.value.toLowerCase().trim();
+  const eventos = document.querySelectorAll('#listaEventos .evento-item');
+
+  let algunoVisible = false;
+
+  eventos.forEach(evento => {
+    const texto = evento.textContent.toLowerCase();
+    const coincide = texto.includes(filtro);
+
+    // Mostrar si coincide aunque sea inactivo
+    evento.classList.toggle('d-none', !coincide);
+    if (coincide) algunoVisible = true;
+  });
+
+  document.getElementById('eventosVacio').classList.toggle('d-none', algunoVisible);
+});
+
+
 
 // Iniciar la aplicación cuando se cargue completamente el DOM
 document.addEventListener('DOMContentLoaded', inicializarApp);

@@ -98,6 +98,22 @@
         </div>
         
         <!-- Lista de eventos existentes -->
+        <!-- Buscador de Eventos -->
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h2 class="h5 text-auditorio-rojo mb-0">Buscar Eventos</h2>
+          </div>
+          <div class="card-body">
+            <form id="busquedaEventosForm">
+              <div class="mb-3">
+                <label for="eventoBusqueda" class="form-label">Nombre del evento</label>
+                <input type="text" class="form-control" id="eventoBusqueda" placeholder="Buscar por nombre de evento...">
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Lista de eventos existentes -->
         <div class="card">
           <div class="card-header bg-light">
             <h2 class="h5 text-auditorio-rojo mb-0">Eventos Disponibles</h2>
@@ -111,7 +127,7 @@
                 </div>
                 Cargando eventos...
               </div>
-              
+
               <!-- Mensaje cuando no hay eventos -->
               <div id="eventosVacio" class="p-3 text-center text-muted d-none">
                 No hay eventos disponibles. Cree un evento nuevo para comenzar.
@@ -119,7 +135,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Estadísticas del evento -->
         <div id="estadisticasContainer" class="card mt-4 d-none">
           <div class="card-header bg-light">
