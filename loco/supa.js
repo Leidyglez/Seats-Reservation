@@ -1,9 +1,3 @@
-// Inicialización de Supabase
-const supabaseUrl = 'https://mahtgbesmlplwzxrqquw.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1haHRnYmVzbWxwbHd6eHJxcXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODkxNzksImV4cCI6MjA2MjA2NTE3OX0.iPQRjkJkvNK84_Arxd5hN0rnZv8b4g4b3X06HERjY94';
-
-const client = supabase.createClient(supabaseUrl, supabaseKey);
-
 /**
  * Obtiene todos los eventos disponibles desde Supabase
  */
@@ -123,8 +117,8 @@ async function editarEvento(id, eventoActualizado) {
 
 /**
  * Genera todos los asientos en memoria para un evento
- * @param {number} idevento ID del evento
- * @returns {Array} Array de asientos generados
+ * @param {number} idevento 
+ * @returns {Array} 
  */
 function generarAsientosEnMemoria(idevento) {
   const filas = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O'];
@@ -173,12 +167,12 @@ async function obtenerAsientosGenerales() {
 /**
  * Obtiene los asientos para un evento específico
  * Genera todos los asientos en memoria y luego actualiza con los datos de la BD
- * @param {number} idevento ID del evento
+ * @param {number} idevento
  * @returns {Array} Array completo de asientos
  */
 async function obtenerAsientos(idevento) {
   try {
-    // Generar todos los asientos en memoria
+    
     const asientosMemoria = generarAsientosEnMemoria(idevento);
     
     // Obtener solo los asientos no disponibles de la BD

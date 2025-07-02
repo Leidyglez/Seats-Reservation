@@ -64,6 +64,15 @@ const editarEventoModal = new bootstrap.Modal(document.getElementById('editarEve
 
 // Inicializar la aplicación
 function inicializarApp() {
+
+  if(!client){
+    setTimeout(() => {
+      inicializarApp();
+    }, 1000);
+
+    return;
+  }
+
   // Establecer el año actual en el pie de página
   currentYearSpan.textContent = new Date().getFullYear();
   
